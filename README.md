@@ -60,3 +60,9 @@ It will show tasks that you can run with Nx.
 - [Join the community](https://nx.dev/community)
 - [Subscribe to the Nx Youtube Channel](https://www.youtube.com/@nxdevtools)
 - [Follow us on Twitter](https://twitter.com/nxdevtools)
+
+## Commands
+npx create-nx-workspace nx-todo-backend --preset=nest
+npm i -legacy-peer-deps
+nx build nx-todo-backend
+nx serve nx-todo-backend
