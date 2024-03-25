@@ -1,0 +1,24 @@
+{
+  "name": "nx-todo-backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/nx-todo-backend/src",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "nx-todo-backend:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "nx-todo-backend:build:development"
+        },
+        "production": {
+          "buildTarget": "nx-todo-backend:build:production"
+        }
+      }
+    }
+  },
+  "tags": []
+}
