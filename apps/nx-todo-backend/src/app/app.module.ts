@@ -2,17 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { TodoModule } from '../todo/todo.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TodoModule } from '../todo/todo.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(
-      {
-        envFilePath: '.env.development',
-      }
-    ),
+    ConfigModule.forRoot({
+      envFilePath: '.env.development',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST,
@@ -25,7 +23,7 @@ import { TodoModule } from '../todo/todo.module';
       autoLoadEntities: true,
       logging: true,
     }),
-    TodoModule
+    TodoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
