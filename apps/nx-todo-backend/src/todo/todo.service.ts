@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { TodoDto } from './todo.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TodoEntity } from './todo.entity';
 import { Repository } from 'typeorm';
+import { TodoDto } from './todo.dto';
+import { TodoEntity } from './todo.entity';
 
 @Injectable()
 export class TodoService {
@@ -28,12 +28,18 @@ export class TodoService {
 
   async find(): Promise<TodoDto[]> {
     try {
-      const todos = await this.todoRepository.find();
+      const todos = await this.todoRepository.find({
+        where: {
+          is_deleted: false,
+        },
+      });
 
       return todos.map((todoEntity) => ({
         id: todoEntity.id,
         name: todoEntity.name,
         isDone: todoEntity.is_done,
+        createdAt: todoEntity.created_at,
+        updatedAt: todoEntity.updated_at,
       }));
     } catch (ex) {
       throw new Error(`findAll error: ${ex.message}.`);
@@ -48,6 +54,7 @@ export class TodoService {
       const todoFromDB = await this.todoRepository.findOne({
         where: {
           id: id,
+          is_deleted: false,
         },
       });
       if (!todoFromDB) {
@@ -57,6 +64,8 @@ export class TodoService {
         id: todoFromDB.id,
         name: todoFromDB.name,
         isDone: todoFromDB.is_done,
+        createdAt: todoFromDB.created_at,
+        updatedAt: todoFromDB.updated_at,
       };
 
       return todoDto;
@@ -70,16 +79,55 @@ export class TodoService {
       throw new Error(`update error: id is empty.`);
     }
     try {
+      const todoFromDB = await this.todoRepository.findOne({
+        where: {
+          id: id,
+          is_deleted: false,
+        },
+      });
+      if (!todoFromDB) {
+        throw new Error(`Error during update, item not found => id: ${id}}`);
+      }
       const todoEntity = new TodoEntity();
 
       todoEntity.name = todo.name;
       todoEntity.is_done = todo.isDone;
+      todoEntity.updated_at = new Date();
 
       const { affected } = await this.todoRepository.update(id, todoEntity);
 
       return affected;
     } catch (ex) {
-      throw new Error(`Update error: ${ex.message}.`);
+      throw new Error(`update error: ${ex.message}.`);
+    }
+  }
+
+  async markAsDeleted(id: number): Promise<number> {
+    if (!id) {
+      throw new Error(`mark as deleted error: id is empty.`);
+    }
+    try {
+      const todoFromDB = await this.todoRepository.findOne({
+        where: {
+          id: id,
+          is_deleted: false,
+        },
+      });
+      if (!todoFromDB) {
+        throw new Error(
+          `Error during mark as deleted, item not found => id: ${id}}`
+        );
+      }
+      const todoEntity = new TodoEntity();
+
+      todoEntity.is_deleted = true;
+      todoEntity.deleted_at = new Date();
+
+      const { affected } = await this.todoRepository.update(id, todoEntity);
+
+      return affected;
+    } catch (ex) {
+      throw new Error(`mark as deleted error: ${ex.message}.`);
     }
   }
 
@@ -91,6 +139,7 @@ export class TodoService {
       const todoFromDB = await this.todoRepository.findOne({
         where: {
           id: id,
+          is_deleted: false,
         },
       });
       if (!todoFromDB) {

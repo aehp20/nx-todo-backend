@@ -1,8 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity("todos")
+@Entity('todos')
 export class TodoEntity {
-  @PrimaryGeneratedColumn("increment")
+  @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column()
@@ -10,4 +10,16 @@ export class TodoEntity {
 
   @Column()
   is_done: boolean;
+
+  @Column()
+  created_at: Date;
+
+  @Column()
+  updated_at: Date;
+
+  @Column()
+  deleted_at: Date;
+
+  @Column()
+  is_deleted: boolean;
 }
