@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { TodoDto } from './todo.dto';
 import { TodoEntity } from './todo.entity';
+import { TodoQuery } from './todo.query';
 
 @Injectable()
 export class TodoService {
@@ -26,11 +27,19 @@ export class TodoService {
     }
   }
 
-  async find(): Promise<TodoDto[]> {
+  async find(todoQuery: TodoQuery): Promise<TodoDto[]> {
     try {
+      let filters = {};
+      if (typeof todoQuery.name === 'string') {
+        filters = { name: ILike(`%${todoQuery.name}%`) };
+      }
+      if (typeof todoQuery.isDone === 'string') {
+        filters = { is_done: !!todoQuery.isDone };
+      }
       const todos = await this.todoRepository.find({
         where: {
           is_deleted: false,
+          ...filters,
         },
       });
 

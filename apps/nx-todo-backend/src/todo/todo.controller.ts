@@ -6,8 +6,10 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { TodoDto } from './todo.dto';
+import { TodoQuery } from './todo.query';
 import { TodoService } from './todo.service';
 
 @Controller({
@@ -23,8 +25,8 @@ export class TodoController {
   }
 
   @Get()
-  get(): Promise<TodoDto[]> {
-    return this.todoService.find();
+  get(@Query() todoQuery: TodoQuery): Promise<TodoDto[]> {
+    return this.todoService.find(todoQuery);
   }
 
   @Get(':id')
