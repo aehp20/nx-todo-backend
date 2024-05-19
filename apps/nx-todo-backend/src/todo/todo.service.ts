@@ -4,6 +4,7 @@ import { ILike, Repository } from 'typeorm';
 import { TodoDto } from './todo.dto';
 import { TodoEntity } from './todo.entity';
 import { TodoQuery } from './todo.query';
+import { TodoResponse } from './todo.types';
 
 @Injectable()
 export class TodoService {
@@ -27,7 +28,7 @@ export class TodoService {
     }
   }
 
-  async find(todoQuery: TodoQuery): Promise<TodoDto[]> {
+  async find(todoQuery: TodoQuery): Promise<TodoResponse> {
     try {
       let filters = {};
       if (typeof todoQuery.name === 'string') {
@@ -36,20 +37,29 @@ export class TodoService {
       if (typeof todoQuery.isDone === 'string') {
         filters = { is_done: !!todoQuery.isDone };
       }
-      const todos = await this.todoRepository.find({
+      const allCount = await this.todoRepository.count({
+        where: {
+          is_deleted: false,
+        },
+      });
+      const [todos, filteredCount] = await this.todoRepository.findAndCount({
         where: {
           is_deleted: false,
           ...filters,
         },
       });
 
-      return todos.map((todoEntity) => ({
-        id: todoEntity.id,
-        name: todoEntity.name,
-        isDone: todoEntity.is_done,
-        createdAt: todoEntity.created_at,
-        updatedAt: todoEntity.updated_at,
-      }));
+      return {
+        items: todos.map((todoEntity) => ({
+          id: todoEntity.id,
+          name: todoEntity.name,
+          isDone: todoEntity.is_done,
+          createdAt: todoEntity.created_at,
+          updatedAt: todoEntity.updated_at,
+        })),
+        allCount,
+        filteredCount,
+      };
     } catch (ex) {
       throw new Error(`findAll error: ${ex.message}.`);
     }

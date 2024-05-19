@@ -11,6 +11,7 @@ import {
 import { TodoDto } from './todo.dto';
 import { TodoQuery } from './todo.query';
 import { TodoService } from './todo.service';
+import { TodoResponse } from './todo.types';
 
 @Controller({
   path: 'todo',
@@ -25,7 +26,7 @@ export class TodoController {
   }
 
   @Get()
-  get(@Query() todoQuery: TodoQuery): Promise<TodoDto[]> {
+  get(@Query() todoQuery: TodoQuery): Promise<TodoResponse> {
     return this.todoService.find(todoQuery);
   }
 
