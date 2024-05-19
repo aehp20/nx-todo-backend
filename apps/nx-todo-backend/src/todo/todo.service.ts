@@ -35,7 +35,7 @@ export class TodoService {
         filters = { name: ILike(`%${todoQuery.name}%`) };
       }
       if (typeof todoQuery.isDone === 'string') {
-        filters = { is_done: !!todoQuery.isDone };
+        filters = { is_done: todoQuery.isDone === 'true' };
       }
       const allCount = await this.todoRepository.count({
         where: {
