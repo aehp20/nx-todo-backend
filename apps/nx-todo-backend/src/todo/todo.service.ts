@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
+import { PaginationMeta } from '../common/paginationMeta';
+import { PaginationResponse } from '../common/paginationResponse';
 import { TodoDto } from './todo.dto';
 import { TodoEntity } from './todo.entity';
 import { TodoQuery } from './todo.query';
-import { TodoResponse } from './todo.types';
 
 @Injectable()
 export class TodoService {
@@ -22,50 +23,75 @@ export class TodoService {
 
       const createdTodoEntity = await this.todoRepository.save(todoEntity);
 
-      return createdTodoEntity.id;
+      return new Promise(function (resolve, _reject) {
+        setTimeout(function () {
+          resolve(createdTodoEntity.id);
+        }, 3000);
+      });
+
+      // return createdTodoEntity.id;
     } catch (ex) {
       throw new Error(`create error: ${ex.message}.`);
     }
   }
 
-  async find(todoQuery: TodoQuery): Promise<TodoResponse> {
+  async find(todoQuery: TodoQuery): Promise<PaginationResponse<TodoEntity>> {
     try {
-      let filters = {};
-      if (typeof todoQuery.name === 'string') {
-        filters = { name: ILike(`%${todoQuery.name}%`) };
-      }
-      if (typeof todoQuery.isDone === 'string') {
-        filters = { is_done: todoQuery.isDone === 'true' };
-      }
-      const allCount = await this.todoRepository.count({
-        where: {
-          is_deleted: false,
-        },
-      });
-      const [todos, filteredCount] = await this.todoRepository.findAndCount({
-        where: {
-          is_deleted: false,
-          ...filters,
-        },
+      const queryBuilder = this.todoRepository.createQueryBuilder('todo');
+
+      queryBuilder
+        .orderBy('todo.created_at', todoQuery.order)
+        .where('todo.is_deleted = :is_deleted', { is_deleted: false })
+        .andWhere(
+          new Brackets((qb) => {
+            if (typeof todoQuery.name === 'string') {
+              qb.where('LOWER(todo.name) like LOWER(:name)', {
+                name: `%${todoQuery.name}%`,
+              });
+            } else {
+              qb.where('todo.name is not null');
+            }
+          })
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (typeof todoQuery.isDone === 'string') {
+              qb.where('todo.is_done = :is_done', {
+                is_done: todoQuery.isDone === 'true',
+              });
+            } else {
+              qb.where('todo.is_done is not null');
+            }
+          })
+        )
+        .skip(todoQuery.skip)
+        .take(todoQuery.pageSize);
+
+      const totalItems = await queryBuilder.getCount();
+      const { entities } = await queryBuilder.getRawAndEntities();
+      const paginationMeta = new PaginationMeta(
+        todoQuery.page,
+        todoQuery.pageSize,
+        totalItems
+      );
+      const paginationResponse = new PaginationResponse<TodoEntity>(
+        entities,
+        paginationMeta
+      );
+
+      return new Promise(function (resolve, _reject) {
+        setTimeout(function () {
+          resolve(paginationResponse);
+        }, 0); // 3000
       });
 
-      return {
-        items: todos.map((todoEntity) => ({
-          id: todoEntity.id,
-          name: todoEntity.name,
-          isDone: todoEntity.is_done,
-          createdAt: todoEntity.created_at,
-          updatedAt: todoEntity.updated_at,
-        })),
-        allCount,
-        filteredCount,
-      };
+      // return paginationResponse;
     } catch (ex) {
       throw new Error(`findAll error: ${ex.message}.`);
     }
   }
 
-  async findOne(id: number): Promise<TodoDto | undefined> {
+  async findOne(id: number): Promise<TodoEntity | undefined> {
     if (!id) {
       throw new Error(`findOne error: id is empty.`);
     }
@@ -79,15 +105,13 @@ export class TodoService {
       if (!todoFromDB) {
         throw new Error(`Error during findOne, item not found => id: ${id}}`);
       }
-      const todoDto = {
-        id: todoFromDB.id,
-        name: todoFromDB.name,
-        isDone: todoFromDB.is_done,
-        createdAt: todoFromDB.created_at,
-        updatedAt: todoFromDB.updated_at,
-      };
 
-      return todoDto;
+      return new Promise(function (resolve, _reject) {
+        setTimeout(function () {
+          resolve(todoFromDB);
+        }, 3000);
+      });
+      // return todoFromDB;
     } catch (ex) {
       throw new Error(`findOne error: ${ex.message}.`);
     }
@@ -115,7 +139,13 @@ export class TodoService {
 
       const { affected } = await this.todoRepository.update(id, todoEntity);
 
-      return affected;
+      return new Promise(function (resolve, _reject) {
+        setTimeout(function () {
+          resolve(affected);
+        }, 3000);
+      });
+
+      // return affected;
     } catch (ex) {
       throw new Error(`update error: ${ex.message}.`);
     }
@@ -144,7 +174,13 @@ export class TodoService {
 
       const { affected } = await this.todoRepository.update(id, todoEntity);
 
-      return affected;
+      return new Promise(function (resolve, _reject) {
+        setTimeout(function () {
+          resolve(affected);
+        }, 3000);
+      });
+
+      // return affected;
     } catch (ex) {
       throw new Error(`mark as deleted error: ${ex.message}.`);
     }
