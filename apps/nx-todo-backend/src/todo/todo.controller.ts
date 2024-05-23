@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { PaginationResponse } from '../common/paginationResponse';
 import { TodoDto } from './todo.dto';
-import { TodoEntity } from './todo.entity';
-import { TodoQuery } from './todo.query';
+import { ITodoQuery, TodoQuery } from './todo.query';
+import { TodoReadDto } from './todo.read.dto';
 import { TodoService } from './todo.service';
 
 @Controller({
@@ -27,9 +27,8 @@ export class TodoController {
   }
 
   @Get()
-  get(@Query() todoQuery: TodoQuery): Promise<PaginationResponse<TodoEntity>> {
-    const query = new TodoQuery(todoQuery);
-    return this.todoService.find(query);
+  get(@Query() query: ITodoQuery): Promise<PaginationResponse<TodoReadDto>> {
+    return this.todoService.find(new TodoQuery(query));
   }
 
   @Get(':id')

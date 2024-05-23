@@ -1,3 +1,5 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
@@ -6,12 +8,14 @@ import { PaginationResponse } from '../common/paginationResponse';
 import { TodoDto } from './todo.dto';
 import { TodoEntity } from './todo.entity';
 import { TodoQuery } from './todo.query';
+import { TodoReadDto } from './todo.read.dto';
 
 @Injectable()
 export class TodoService {
   constructor(
     @InjectRepository(TodoEntity)
-    private readonly todoRepository: Repository<TodoEntity>
+    private readonly todoRepository: Repository<TodoEntity>,
+    @InjectMapper() private readonly classMapper: Mapper
   ) {}
 
   async create(todo: TodoDto): Promise<number> {
@@ -35,7 +39,7 @@ export class TodoService {
     }
   }
 
-  async find(todoQuery: TodoQuery): Promise<PaginationResponse<TodoEntity>> {
+  async find(todoQuery: TodoQuery): Promise<PaginationResponse<TodoReadDto>> {
     try {
       const queryBuilder = this.todoRepository.createQueryBuilder('todo');
 
@@ -69,13 +73,19 @@ export class TodoService {
 
       const totalItems = await queryBuilder.getCount();
       const { entities } = await queryBuilder.getRawAndEntities();
+
       const paginationMeta = new PaginationMeta(
         todoQuery.page,
         todoQuery.pageSize,
         totalItems
       );
-      const paginationResponse = new PaginationResponse<TodoEntity>(
+      const todosReadDto = this.classMapper.mapArray(
         entities,
+        TodoEntity,
+        TodoReadDto
+      );
+      const paginationResponse = new PaginationResponse<TodoReadDto>(
+        todosReadDto,
         paginationMeta
       );
 
@@ -91,7 +101,7 @@ export class TodoService {
     }
   }
 
-  async findOne(id: number): Promise<TodoEntity | undefined> {
+  async findOne(id: number): Promise<TodoReadDto | undefined> {
     if (!id) {
       throw new Error(`findOne error: id is empty.`);
     }
@@ -106,12 +116,18 @@ export class TodoService {
         throw new Error(`Error during findOne, item not found => id: ${id}}`);
       }
 
+      const todoReadDto = this.classMapper.map(
+        todoFromDB,
+        TodoEntity,
+        TodoReadDto
+      );
+
       return new Promise(function (resolve, _reject) {
         setTimeout(function () {
-          resolve(todoFromDB);
-        }, 3000);
+          resolve(todoReadDto);
+        }, 0); // 3000
       });
-      // return todoFromDB;
+      // return todoReadDto;
     } catch (ex) {
       throw new Error(`findOne error: ${ex.message}.`);
     }

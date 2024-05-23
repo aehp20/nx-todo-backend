@@ -1,7 +1,13 @@
+import { classes } from '@automapper/classes';
+import { AutomapperModule } from '@automapper/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import {
+  CamelCaseNamingConvention,
+  SnakeCaseNamingConvention,
+} from '@automapper/core';
 import { TodoModule } from '../todo/todo.module';
 
 @Module({
@@ -20,6 +26,13 @@ import { TodoModule } from '../todo/todo.module';
       synchronize: false,
       autoLoadEntities: true,
       logging: true,
+    }),
+    AutomapperModule.forRoot({
+      strategyInitializer: classes(),
+      namingConventions: {
+        source: new SnakeCaseNamingConvention(),
+        destination: new CamelCaseNamingConvention(),
+      },
     }),
     TodoModule,
   ],

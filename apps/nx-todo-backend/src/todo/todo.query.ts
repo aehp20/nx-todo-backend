@@ -1,26 +1,22 @@
-import { Type } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
-import { Order } from '../common/order';
-import { PageOptions } from '../common/paginationOptions';
+import { QueryParams } from '../common/queryParams';
 
-export class TodoQuery extends PageOptions {
-  @Type(() => String)
-  @IsString()
-  @IsOptional()
+export interface ITodoQuery extends QueryParams {
   name?: string;
+  isDone?: string;
+}
 
-  @Type(() => String)
-  @IsString()
-  @IsOptional()
+export class TodoQuery extends QueryParams implements ITodoQuery {
+  name?: string;
   isDone?: string;
 
-  constructor(model: TodoQuery) {
-    super(
-      Number(model.page || 1),
-      Number(model.pageSize || 5),
-      model.order || Order.ASC
-    );
+  constructor(model: Partial<TodoQuery> = {}) {
+    super();
+
     this.name = model.name;
     this.isDone = model.isDone;
+
+    this.page = model.page ? Number(model.page) : this.page;
+    this.pageSize = model.pageSize ? Number(model.pageSize) : this.pageSize;
+    this.order = model.order;
   }
 }
