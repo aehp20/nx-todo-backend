@@ -9,10 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { PaginationResponse } from '../common/paginationResponse';
-import { TodoDto } from './todo.dto';
+import { TodoCreateDto } from './todo.create.dto';
 import { ITodoQuery, TodoQuery } from './todo.query';
 import { TodoReadDto } from './todo.read.dto';
 import { TodoService } from './todo.service';
+import { TodoUpdateDto } from './todo.update.dto';
 
 @Controller({
   path: 'todo',
@@ -22,7 +23,7 @@ export class TodoController {
   constructor(private todoService: TodoService) {}
 
   @Post()
-  create(@Body() todo: TodoDto): Promise<number> {
+  create(@Body() todo: TodoCreateDto): Promise<number> {
     return this.todoService.create(todo);
   }
 
@@ -37,8 +38,8 @@ export class TodoController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: number, @Body() todoDto: TodoDto) {
-    return this.todoService.update(id, todoDto);
+  update(@Param('id') id: number, @Body() todo: TodoUpdateDto) {
+    return this.todoService.update(id, todo);
   }
 
   @Delete(':id')
