@@ -28,26 +28,6 @@ export class TodoService {
     @InjectMapper() private readonly classMapper: Mapper
   ) {}
 
-  async create(todo: TodoCreateDto): Promise<number> {
-    try {
-      const mapper = createMapper({
-        strategyInitializer: classes(),
-        namingConventions: {
-          source: new CamelCaseNamingConvention(),
-          destination: new SnakeCaseNamingConvention(),
-        },
-      });
-      createMap(mapper, TodoUpdateDto, TodoEntity);
-      const todoEntity = mapper.map(todo, TodoUpdateDto, TodoEntity);
-
-      const createdTodoEntity = await this.todoRepository.save(todoEntity);
-
-      return createdTodoEntity.id;
-    } catch (ex) {
-      throw new Error(`create error: ${ex.message}.`);
-    }
-  }
-
   async find(todoQuery: TodoQuery): Promise<PaginationResponse<TodoReadDto>> {
     try {
       const queryBuilder = this.todoRepository.createQueryBuilder('todo');
@@ -131,6 +111,26 @@ export class TodoService {
     }
   }
 
+  async create(todo: TodoCreateDto): Promise<number> {
+    try {
+      const mapper = createMapper({
+        strategyInitializer: classes(),
+        namingConventions: {
+          source: new CamelCaseNamingConvention(),
+          destination: new SnakeCaseNamingConvention(),
+        },
+      });
+      createMap(mapper, TodoUpdateDto, TodoEntity);
+      const todoEntity = mapper.map(todo, TodoUpdateDto, TodoEntity);
+
+      const createdTodoEntity = await this.todoRepository.save(todoEntity);
+
+      return createdTodoEntity.id;
+    } catch (ex) {
+      throw new Error(`create error: ${ex.message}.`);
+    }
+  }
+
   async update(id: number, todo: TodoUpdateDto): Promise<number | undefined> {
     if (!id) {
       throw new Error(`update error: id is empty.`);
@@ -154,6 +154,7 @@ export class TodoService {
       });
       createMap(mapper, TodoUpdateDto, TodoEntity);
       const todoEntity = mapper.map(todo, TodoUpdateDto, TodoEntity);
+      todoEntity.updated_at = new Date();
 
       const { affected } = await this.todoRepository.update(id, todoEntity);
 
